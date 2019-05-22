@@ -1,0 +1,97 @@
+
+#####  Terrain Definitions  #####
+
+unknown grid, ,32,INDESTRUCTABLE_OBSTACLE
+open floor,.,46,PASSABLE_TERRAIN
+closed door,+,43,INDESTRUCTABLE_OBSTACLE
+open door,',39,PASSABLE_TERRAIN
+up staircase,<,60,PASSABLE_TERRAIN
+down staircase,>,62,PASSABLE_TERRAIN
+General Store,1,49,PASSABLE_TERRAIN
+Armoury,2,50,PASSABLE_TERRAIN
+Weapon Smiths,3,51,PASSABLE_TERRAIN
+Bookseller,4,52,PASSABLE_TERRAIN
+Alchemy Shop,5,53,PASSABLE_TERRAIN
+Magic Shop,6,54,PASSABLE_TERRAIN
+Black Market,7,55,PASSABLE_TERRAIN
+Home,8,56,PASSABLE_TERRAIN
+pile of rubble,:,58,INDESTRUCTABLE_OBSTACLE
+quartz vein,%,37,INDESTRUCTABLE_OBSTACLE
+quartz vein with treasure,*,42,INDESTRUCTABLE_OBSTACLE
+permanent wall,#,35,INDESTRUCTABLE_OBSTACLE
+
+#####  Object Definitions  #####
+
+<pile>,&,38,OBJECT
+& Lantern~,~,126,OBJECT
+& Flask~ of oil,!,33,OBJECT
+& Dagger~,|,124,OBJECT
+& Whip~,\,92,OBJECT
+& Spear~,/,47,OBJECT
+& Sling~,},125,OBJECT
+& Arrow~,{,123,OBJECT
+& Pair~ of Leather Sandals,],93,OBJECT
+& Robe~,(,40,OBJECT
+Metal Scale Mail~,[,91,OBJECT
+& Wicker Shield~,),41,OBJECT
+Strength??,=,61,OBJECT
+Wisdom??,",34,OBJECT
+Scroll,?,63,OBJECT
+Wand??,-,45,OBJECT
+Wand??,_,95,OBJECT
+
+#####  Monster_Base Definitions  #####
+
+ancient dragon,D,68,MONSTER
+ainu,A,65,MONSTER
+ant,a,97,MONSTER
+bat,b,98,MONSTER
+bird,B,66,MONSTER
+canine,C,67,MONSTER
+centipede,c,99,MONSTER
+creeping coins,$,36,MONSTER
+dragon,d,100,MONSTER
+dragon fly,F,70,MONSTER
+eye,e,101,MONSTER
+elemental,E,69,MONSTER
+feline,f,102,MONSTER
+ghost,G,71,MONSTER
+giant,P,80,MONSTER
+golem,g,103,MONSTER
+humanoid,h,104,MONSTER
+hybrid,H,72,MONSTER
+hydra,M,77,MONSTER
+icky thing,i,105,MONSTER
+insect,I,73,MONSTER
+jelly,j,106,MONSTER
+killer beetle,K,75,MONSTER
+kobold,k,107,MONSTER
+lich,L,76,MONSTER
+major demon,U,85,MONSTER
+minor demon,u,117,MONSTER
+mold,m,109,MONSTER
+mushroom,,,44,MONSTER
+naga,n,110,MONSTER
+ogre,O,79,MONSTER
+orc,o,111,MONSTER
+person,p,112,MONSTER
+quadruped,q,113,MONSTER
+quylthulg,Q,81,MONSTER
+reptile,R,82,MONSTER
+rodent,r,114,MONSTER
+skeleton,s,115,MONSTER
+snake,J,74,MONSTER
+spider,S,83,MONSTER
+townsfolk,t,116,MONSTER
+tree,l,108,MONSTER
+troll,T,84,MONSTER
+vampire,V,86,MONSTER
+vortex,v,118,MONSTER
+worm,w,119,MONSTER
+wraith,W,87,MONSTER
+xorn,X,88,MONSTER
+yeek,y,121,MONSTER
+yeti,Y,89,MONSTER
+zephyr hound,Z,90,MONSTER
+zombie,z,122,MONSTER
+player,@,64,MONSTER
