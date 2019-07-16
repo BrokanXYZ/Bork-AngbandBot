@@ -1,5 +1,7 @@
 import os
 import time
+from TileMap import TileMap
+from Tile import Tile
 from array import *
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -16,6 +18,11 @@ game_font_size = '16px'
 subwindows = '4'
 characterName = 'Bork'
 startNewGame = False
+
+mapViewWidth = 77
+mapViewHeight = 20
+mapViewLeftOffset = 14
+mapViewTopOffset = 1
 
 ############################ Function Defs ############################
 
@@ -129,24 +136,29 @@ def createCharacter(characterName):
     time.sleep(1)
 
 
-def pollMap():
+def getMapView():
 
-    mapWidth = 77
-    mapHeight = 20
-    mapLeftOffset = 14
-    mapTopOffset = 1
-    map = []
+    mapView = []
 
     wholePageText = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']").text
     wholePageTextSplitLines = wholePageText.splitlines()
 
-    linePointer = mapTopOffset
-    while linePointer < mapHeight+mapTopOffset :
-        line = wholePageTextSplitLines[linePointer]
-        map.append(line[mapLeftOffset:(mapWidth+mapLeftOffset-1)])
+    linePointer = mapViewTopOffset
+
+    while linePointer < mapViewHeight+mapViewTopOffset :
+
+        line = list(wholePageTextSplitLines[linePointer])
+
+        # Convert ASCII code 183 (A with grave accent) to 46 (Period)
+        for i, char in enumerate(line):
+            if ord(char)==183:
+                line[i]='.'
+
+        line = "".join(line)
+        mapView.append(line[mapViewLeftOffset:(mapViewWidth+mapViewLeftOffset-1)])
         linePointer+=1
 
-    return map
+    return mapView
 
 
 
@@ -180,19 +192,12 @@ else:
     time.sleep(1)
 
 
-map = pollMap()
-charDictionary = {}
+mapView = getMapView()
+#print(*mapView, sep="\n")
 
-for line in map:
-    for char in line:
-        if char not in charDictionary:
-            charDictionary[char] = ord(char)
-
-print(charDictionary)
-
-
-
-
+map = TileMap(mapViewWidth, mapViewHeight)
+map.writeTiles(mapView)
+map.print()
 
 # Poll screen
 
