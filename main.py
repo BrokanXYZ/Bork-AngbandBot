@@ -20,8 +20,8 @@ characterName = 'Bork'
 startNewGame = False
 
 mapViewWidth = 77
-mapViewHeight = 20
-mapViewLeftOffset = 14
+mapViewHeight = 22
+mapViewLeftOffset = 13
 mapViewTopOffset = 1
 
 ############################ Function Defs ############################
@@ -29,7 +29,6 @@ mapViewTopOffset = 1
 def configDriver():
     driver.implicitly_wait(10)
     driver.maximize_window()
-
 
 def login():
     username = driver.find_element_by_name('username')
@@ -40,14 +39,12 @@ def login():
     enter.click()
     time.sleep(1)
 
-
 def deleteProfile():
     deleteButton = driver.find_element_by_id('deletebutton')
     deleteButton.click()
     alert = driver.switch_to.alert
     alert.accept()
     time.sleep(3)
-
 
 def checkProfileCleanliness():
     deleteButton = driver.find_element_by_id('deletebutton')
@@ -56,7 +53,6 @@ def checkProfileCleanliness():
     else:
         return True
     time.sleep(1)
-
 
 def selectGameAndStyleSettings(game, game_font, game_font_size, subwindows):
 
@@ -86,7 +82,6 @@ def selectGameAndStyleSettings(game, game_font, game_font_size, subwindows):
 
     driver.find_element_by_id('playbutton').click()
     time.sleep(1)
-
 
 def createCharacter(characterName):
     # Press any key
@@ -135,16 +130,20 @@ def createCharacter(characterName):
     terminal.send_keys(Keys.ENTER)
     time.sleep(1)
 
-
 def getMapView():
 
     mapView = []
-
     wholePageText = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']").text
+
+    blankLine = "                                                                                                                                                                             "
+    firstLine = wholePageText[:173]
+
+    if firstLine == blankLine:
+        wholePageText = wholePageText[:173] + '\n' + wholePageText[173:]
+
     wholePageTextSplitLines = wholePageText.splitlines()
 
     linePointer = mapViewTopOffset
-
     while linePointer < mapViewHeight+mapViewTopOffset :
 
         line = list(wholePageTextSplitLines[linePointer])
@@ -155,12 +154,10 @@ def getMapView():
                 line[i]='.'
 
         line = "".join(line)
-        mapView.append(line[mapViewLeftOffset:(mapViewWidth+mapViewLeftOffset-1)])
+        mapView.append(line[mapViewLeftOffset:(mapViewWidth+mapViewLeftOffset)])
         linePointer+=1
 
     return mapView
-
-
 
 #######################################################################
 
@@ -198,6 +195,28 @@ mapView = getMapView()
 map = TileMap(mapViewWidth, mapViewHeight)
 map.writeTiles(mapView)
 map.print()
+
+userInput = ''
+
+while userInput!='q':
+
+    userInput = input("Direction: ")
+
+    if userInput == '9' or userInput == '8' or userInput == '7' or userInput == '6' or userInput == '5' or userInput == '4' or userInput == '3' or userInput == '2' or userInput == '1':
+
+        terminal.send_keys(userInput)
+        time.sleep(1)
+
+        mapView = getMapView()
+        map.writeTiles(mapView)
+        map.print()
+
+
+driver.quit()
+
+
+
+
 
 # Poll screen
 

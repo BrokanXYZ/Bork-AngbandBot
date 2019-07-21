@@ -18,6 +18,7 @@ Home,56,PASSABLE_TERRAIN
 pile of rubble,58,INDESTRUCTABLE_OBSTACLE
 quartz vein,37,INDESTRUCTABLE_OBSTACLE
 quartz vein with treasure,42,INDESTRUCTABLE_OBSTACLE
+quartz vein with treasure,9617,INDESTRUCTABLE_OBSTACLE
 permanent wall,35,INDESTRUCTABLE_OBSTACLE
 
 #####  Object Definitions  #####
