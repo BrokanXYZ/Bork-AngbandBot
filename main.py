@@ -1,5 +1,7 @@
 import os
 import time
+import sys
+from enum import Enum
 from TileMap import TileMap
 from Tile import Tile
 from array import *
@@ -12,17 +14,27 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 
-game = 'angband'
-game_font = 'monospace'
-game_font_size = '16px'
-subwindows = '4'
-characterName = 'Bork'
-startNewGame = False
+characterName = "Bork"
+
+game = "Angband"
+gameFont = "Ubuntu Mono"
+fontSize = "18"
+subWindowRightCols = "50"
+subWindowRightSplit = "15"
+subWindowTopRows = "0"
+subWindowBottomRows = "0"
 
 mapViewWidth = 77
 mapViewHeight = 22
 mapViewLeftOffset = 13
 mapViewTopOffset = 1
+
+actionDelay = 1
+
+class ProfileState(Enum):
+    NEW_CHARACTER = 1
+    NEW_CHARACTER_AFTER_DEATH = 2
+    CHARACTER_ALIVE = 3
 
 ############################ Function Defs ############################
 
@@ -31,63 +43,59 @@ def configDriver():
     driver.maximize_window()
 
 def login():
-    username = driver.find_element_by_name('username')
-    username.send_keys(os.environ['USERNAME'])
-    password = driver.find_element_by_name('password')
-    password.send_keys(os.environ['PASSWORD'])
-    enter = driver.find_element_by_name('name')
+    username = driver.find_element_by_name("username")
+    username.send_keys(os.environ["USERNAME"])
+    password = driver.find_element_by_name("password")
+    password.send_keys(os.environ["PASSWORD"])
+    enter = driver.find_element_by_name("name")
     enter.click()
     time.sleep(1)
 
-def deleteProfile():
-    deleteButton = driver.find_element_by_id('deletebutton')
-    deleteButton.click()
-    alert = driver.switch_to.alert
-    alert.accept()
-    time.sleep(3)
-
-def checkProfileCleanliness():
-    deleteButton = driver.find_element_by_id('deletebutton')
-    if deleteButton.is_displayed():
-        return False
-    else:
-        return True
+def selectSettings(game):
+    el = driver.find_element_by_id("gameselect")
+    for option in el.find_elements_by_tag_name("option"):
+        if option.get_attribute("value") == game:
+            option.click()
+            break
     time.sleep(1)
 
-def selectGameAndStyleSettings(game, game_font, game_font_size, subwindows):
-
-    el = driver.find_element_by_id('gameselect')
-    for option in el.find_elements_by_tag_name('option'):
-        if option.get_attribute('value') == game:
-            option.click() # select() in earlier versions of webdriver
+    el = driver.find_element_by_id("extra-fonts")
+    for option in el.find_elements_by_tag_name("option"):
+        if option.get_attribute("value") == gameFont:
+            option.click()
             break
+    time.sleep(1)
 
-    el = driver.find_element_by_id('extra-fonts')
-    for option in el.find_elements_by_tag_name('option'):
-        if option.get_attribute('value') == game_font:
-            option.click() # select() in earlier versions of webdriver
-            break
+    el = driver.find_element_by_id("games-font-size")
+    el.clear()
+    el.send_keys(fontSize)
+    time.sleep(1)
 
-    el = driver.find_element_by_id('games-font-size')
-    for option in el.find_elements_by_tag_name('option'):
-        if option.get_attribute('value') == game_font_size:
-            option.click() # select() in earlier versions of webdriver
-            break
+    el = driver.find_element_by_id("subwindow-right")
+    el.clear()
+    el.send_keys(subWindowRightCols)
+    time.sleep(1)
 
-    el = driver.find_element_by_id('subwindows')
-    for option in el.find_elements_by_tag_name('option'):
-        if option.get_attribute('value') == subwindows:
-            option.click() # select() in earlier versions of webdriver
-            break
+    el = driver.find_element_by_id("subwindow-right-split")
+    el.clear()
+    el.send_keys(subWindowRightSplit)
+    time.sleep(1)
 
+    el = driver.find_element_by_id("subwindow-top")
+    el.clear()
+    el.send_keys(subWindowTopRows)
+    time.sleep(1)
+
+    el = driver.find_element_by_id("subwindow-bottom")
+    el.clear()
+    el.send_keys(subWindowBottomRows)
+    time.sleep(1)
+
+def playGame():
     driver.find_element_by_id('playbutton').click()
     time.sleep(1)
 
-def createCharacter(characterName):
-    # Press any key
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-
+def setIronmanBirthOptions():
     # Birth options
     terminal.send_keys('=')
     time.sleep(1)
@@ -102,6 +110,7 @@ def createCharacter(characterName):
     terminal.send_keys(Keys.ESCAPE)
     time.sleep(1)
 
+def createCharacter(characterName):
     # Race select
     terminal.send_keys('h')
     time.sleep(1)
@@ -130,11 +139,84 @@ def createCharacter(characterName):
     terminal.send_keys(Keys.ENTER)
     time.sleep(1)
 
+def setupSubwindows():
+    terminal.send_keys('=')
+    time.sleep(1)
+    terminal.send_keys('w')
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_RIGHT)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ENTER)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_DOWN)
+    time.sleep(1)
+    terminal.send_keys(Keys.ENTER)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_RIGHT)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ENTER)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ARROW_UP)
+    time.sleep(1)
+    terminal.send_keys(Keys.ENTER)
+    time.sleep(1)
+    terminal.send_keys(Keys.ESCAPE)
+    time.sleep(1)
+    terminal.send_keys(Keys.ESCAPE)
+    time.sleep(1)
+
+
 def getMapView():
 
     mapView = []
-    wholePageText = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']").text
 
+    allTerminalLines = getAllTerminalLines()
+
+    linePointer = 0
+
+    #while linePointer < mapViewHeight+mapViewTopOffset
+
+
+    return mapView
+
+
+"""
     blankLine = "                                                                                                                                                                             "
     firstLine = wholePageText[:173]
 
@@ -158,77 +240,116 @@ def getMapView():
         linePointer+=1
 
     return mapView
+"""
 
-#######################################################################
+def movePlayer(direction):
+    if userInput == '9' or userInput == '8' or userInput == '7' or userInput == '6' or userInput == '5' or userInput == '4' or userInput == '3' or userInput == '2' or userInput == '1':
+        terminal.send_keys(userInput)
+        time.sleep(actionDelay)
+    else:
+        print("* Invalid direction *")
+
+def printAndFlush(string):
+    print(string)
+    sys.stdout.flush()
+
+def getAllTerminalLines():
+    wholePageText = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']").text
+    wholePageTextSplitLines = wholePageText.splitlines()
+    return wholePageTextSplitLines
+
+def getProfileState():
+    state = ProfileState.CHARACTER_ALIVE
+    newCharAfterDeathStr = "New character based on previous one"
+
+    allTerminalLines = getAllTerminalLines()
+    firstTerminalLine = allTerminalLines[0]
+
+    if(firstTerminalLine[0:len(newCharAfterDeathStr)]==newCharAfterDeathStr):
+        state = ProfileState.NEW_CHARACTER_AFTER_DEATH
+
+    return state
+
+
+
+################################# Main #################################
 
 
 driver = webdriver.Chrome()
 
 configDriver()
+printAndFlush('~ Selenium driver configured.\n')
 
 driver.get("http://www.angband.live")
+printAndFlush("~ Navigated to http://www.angband.live\n")
 
 login()
+printAndFlush("~ Logged in\n")
 
-profileIsClean = checkProfileCleanliness()
+printAndFlush("~ Selecting game settings...\n")
+selectSettings(game)
+printAndFlush("+ Done\n")
 
-if profileIsClean or (not profileIsClean and startNewGame):
-    # Create new character
-    if not profileIsClean:
-        deleteProfile()
-    selectGameAndStyleSettings(game, game_font, game_font_size, subwindows)
-    terminal = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
-    createCharacter(characterName)
-else:
-    # Character could be *dead* or alive
-    # ALIVE
-    selectGameAndStyleSettings(game, game_font, game_font_size, subwindows)
-    terminal = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
-    # "Press any key"
-    terminal.send_keys(Keys.ENTER)
+printAndFlush("~ Starting game\n")
+playGame()
+
+terminal = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
+
+# "Press any key"
+terminal.send_keys(Keys.ENTER)
+time.sleep(actionDelay)
+
+profileState = getProfileState()
+printAndFlush("~ Profile state: " + profileState.name + '\n')
+
+if profileState == ProfileState.NEW_CHARACTER_AFTER_DEATH:
+    terminal.send_keys('N')
     time.sleep(1)
+    printAndFlush("~ Creating character...\n")
+    createCharacter(characterName)
+    printAndFlush("+ Done\n")
+elif profileState == ProfileState.NEW_CHARACTER:
+    printAndFlush("~ Setting ironman birth settings...\n")
+    setIronmanBirthOptions()
+    printAndFlush("+ Done\n")
+    printAndFlush("~ Creating character...\n")
+    createCharacter(characterName)
+    printAndFlush("+ Done\n")
+elif profileState == ProfileState.CHARACTER_ALIVE:
+    printAndFlush("~ Resuming game\n")
+else:
+    printAndFlush("~ Profile state NOT handled!\n")
 
+printAndFlush("~ Setting up Subwindows...\n")
+setupSubwindows()
+printAndFlush("+ Done\n")
 
-mapView = getMapView()
+#mapView = getMapView()
 #print(*mapView, sep="\n")
 
-map = TileMap(mapViewWidth, mapViewHeight)
-map.writeTiles(mapView)
+
+#driver.quit()
+
+
+
+"""
+map = TileMap(mapViewWidth, mapViewHeight, mapView)
 map.print()
 
-userInput = ''
+userInput = input("Direction: ")
 
 while userInput!='q':
 
+    movePlayer(userInput)
+
+    mapView = getMapView()
+
+    map.checkAndHandleMapViewPositionChange(mapView)
+    map.writeTiles(mapView)
+    map.updatePlayerPosition()
+
+    map.print()
+
     userInput = input("Direction: ")
 
-    if userInput == '9' or userInput == '8' or userInput == '7' or userInput == '6' or userInput == '5' or userInput == '4' or userInput == '3' or userInput == '2' or userInput == '1':
-
-        terminal.send_keys(userInput)
-        time.sleep(1)
-
-        mapView = getMapView()
-        map.writeTiles(mapView)
-        map.print()
-
-
-driver.quit()
-
-
-
-
-
-# Poll screen
-
-# BEGIN BOT RULE LOOP
-
-# MODES
-# A. Descend
-# B. Descend
-# C. Descend
-# D. Descend
-
-# 1. Is there a downstair case visible? YES take it ELSE
-# 2. Is there a monster? YES kill it ELSE
-# 3. Do you know where to explore? YES explore else
-# 4. Find an area to explore then explore
+"""
