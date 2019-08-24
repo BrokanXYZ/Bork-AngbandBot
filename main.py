@@ -13,23 +13,30 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoSuchElementException
 
 
-
+# User defined vars
 characterName = "Bork"
-
 game = "Angband"
 gameFont = "Ubuntu Mono"
 fontSize = "18"
-subWindowRightCols = "50"
-subWindowRightSplit = "15"
-subWindowTopRows = "0"
-subWindowBottomRows = "0"
-
-mapViewWidth = 77
-mapViewHeight = 22
-mapViewLeftOffset = 13
-mapViewTopOffset = 1
-
+subWindowRightCols = 50
+subWindowRightSplit = 15
+subWindowTopRows = 0
+subWindowBottomRows = 0
 actionDelay = 1
+
+# fixed vars
+mapViewLeftOffset = 12
+mapViewRightOffset = subWindowRightCols + 1
+mapViewBottomOffset = 2
+mapViewTopOffset = 1
+terminalHeight = 49
+terminalWidth = 169
+mapViewWidth = terminalWidth - (mapViewLeftOffset + mapViewRightOffset)
+mapViewHeight = terminalHeight - (mapViewTopOffset + mapViewBottomOffset)
+
+tileMap = None
+driver = None
+terminal = None
 
 class ProfileState(Enum):
     NEW_CHARACTER = 1
@@ -73,22 +80,22 @@ def selectSettings(game):
 
     el = driver.find_element_by_id("subwindow-right")
     el.clear()
-    el.send_keys(subWindowRightCols)
+    el.send_keys(str(subWindowRightCols))
     time.sleep(1)
 
     el = driver.find_element_by_id("subwindow-right-split")
     el.clear()
-    el.send_keys(subWindowRightSplit)
+    el.send_keys(str(subWindowRightSplit))
     time.sleep(1)
 
     el = driver.find_element_by_id("subwindow-top")
     el.clear()
-    el.send_keys(subWindowTopRows)
+    el.send_keys(str(subWindowTopRows))
     time.sleep(1)
 
     el = driver.find_element_by_id("subwindow-bottom")
     el.clear()
-    el.send_keys(subWindowBottomRows)
+    el.send_keys(str(subWindowBottomRows))
     time.sleep(1)
 
 def playGame():
@@ -201,62 +208,43 @@ def setupSubwindows():
     terminal.send_keys(Keys.ESCAPE)
     time.sleep(1)
 
-
 def getMapView():
-
     mapView = []
-
     allTerminalLines = getAllTerminalLines()
-
-    linePointer = 0
-
-    #while linePointer < mapViewHeight+mapViewTopOffset
-
-
-    return mapView
-
-
-"""
-    blankLine = "                                                                                                                                                                             "
-    firstLine = wholePageText[:173]
-
-    if firstLine == blankLine:
-        wholePageText = wholePageText[:173] + '\n' + wholePageText[173:]
-
-    wholePageTextSplitLines = wholePageText.splitlines()
-
     linePointer = mapViewTopOffset
-    while linePointer < mapViewHeight+mapViewTopOffset :
 
-        line = list(wholePageTextSplitLines[linePointer])
+    while linePointer <  len(allTerminalLines) - mapViewBottomOffset:
+
+        line = list(allTerminalLines[linePointer])
 
         # Convert ASCII code 183 (A with grave accent) to 46 (Period)
         for i, char in enumerate(line):
             if ord(char)==183:
                 line[i]='.'
 
+        while len(line) < terminalWidth:
+            line.append(' ')
+
         line = "".join(line)
-        mapView.append(line[mapViewLeftOffset:(mapViewWidth+mapViewLeftOffset)])
+        mapViewLine = line[mapViewLeftOffset:len(line)-mapViewRightOffset]
+        mapView.append(mapViewLine)
+
         linePointer+=1
 
     return mapView
-"""
 
-def movePlayer(direction):
-    if userInput == '9' or userInput == '8' or userInput == '7' or userInput == '6' or userInput == '5' or userInput == '4' or userInput == '3' or userInput == '2' or userInput == '1':
-        terminal.send_keys(userInput)
-        time.sleep(actionDelay)
-    else:
-        print("* Invalid direction *")
+def sendInput(input):
+    terminal.send_keys(userInput)
+    time.sleep(actionDelay)
 
 def printAndFlush(string):
     print(string)
     sys.stdout.flush()
 
 def getAllTerminalLines():
-    wholePageText = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']").text
-    wholePageTextSplitLines = wholePageText.splitlines()
-    return wholePageTextSplitLines
+    allTerminalText = driver.execute_script("return spyglass[\"default\"].grabText(0,0,0," + str(terminalHeight-1) + ")")
+    allTerminalLines = allTerminalText.splitlines()
+    return allTerminalLines
 
 def getProfileState():
     state = ProfileState.CHARACTER_ALIVE
@@ -270,86 +258,98 @@ def getProfileState():
 
     return state
 
+def initTileMap():
+    global tileMap
+
+    mapView = getMapView()
+    tileMap = TileMap(mapViewWidth, mapViewHeight, mapView)
+
+    print("mapViewHeight = " + str(mapViewHeight))
+    print("mapViewWidth = " + str(mapViewWidth))
+
+def setup():
+    printAndFlush("\n---------------------- Begin Setup ----------------------\n")
+
+    global driver
+    global terminal
+
+    driver = webdriver.Chrome()
+
+    configDriver()
+    printAndFlush('~ Selenium driver configured.\n')
+
+    driver.get("http://www.angband.live")
+    printAndFlush("~ Navigated to http://www.angband.live\n")
+
+    login()
+    printAndFlush("~ Logged in\n")
+
+    printAndFlush("~ Selecting game settings...\n")
+    selectSettings(game)
+    printAndFlush("+ Done\n")
+
+    printAndFlush("~ Starting game\n")
+    playGame()
+
+    terminal = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
+
+    # "Press any key"
+    terminal.send_keys(Keys.ENTER)
+    time.sleep(actionDelay)
+
+    profileState = getProfileState()
+    printAndFlush("~ Profile state: " + profileState.name + '\n')
+
+    if profileState == ProfileState.NEW_CHARACTER_AFTER_DEATH:
+        terminal.send_keys('N')
+        time.sleep(1)
+        printAndFlush("~ Creating character...\n")
+        createCharacter(characterName)
+        printAndFlush("+ Done\n")
+    elif profileState == ProfileState.NEW_CHARACTER:
+        printAndFlush("~ Setting ironman birth settings...\n")
+        setIronmanBirthOptions()
+        printAndFlush("+ Done\n")
+        printAndFlush("~ Creating character...\n")
+        createCharacter(characterName)
+        printAndFlush("+ Done\n")
+    elif profileState == ProfileState.CHARACTER_ALIVE:
+        printAndFlush("~ Resuming game\n")
+    else:
+        printAndFlush("~ Profile state NOT handled!\n")
+
+    #printAndFlush("~ Setting up Subwindows...\n")
+    #setupSubwindows()
+    #printAndFlush("+ Done\n")
+
+    printAndFlush("\n-------------------- Setup Complete! --------------------\n")
 
 
 ################################# Main #################################
 
+setup()
 
-driver = webdriver.Chrome()
+initTileMap()
+tileMap.print()
 
-configDriver()
-printAndFlush('~ Selenium driver configured.\n')
+userInput = input("Input: ")
 
-driver.get("http://www.angband.live")
-printAndFlush("~ Navigated to http://www.angband.live\n")
+while userInput!='Q':
 
-login()
-printAndFlush("~ Logged in\n")
-
-printAndFlush("~ Selecting game settings...\n")
-selectSettings(game)
-printAndFlush("+ Done\n")
-
-printAndFlush("~ Starting game\n")
-playGame()
-
-terminal = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
-
-# "Press any key"
-terminal.send_keys(Keys.ENTER)
-time.sleep(actionDelay)
-
-profileState = getProfileState()
-printAndFlush("~ Profile state: " + profileState.name + '\n')
-
-if profileState == ProfileState.NEW_CHARACTER_AFTER_DEATH:
-    terminal.send_keys('N')
-    time.sleep(1)
-    printAndFlush("~ Creating character...\n")
-    createCharacter(characterName)
-    printAndFlush("+ Done\n")
-elif profileState == ProfileState.NEW_CHARACTER:
-    printAndFlush("~ Setting ironman birth settings...\n")
-    setIronmanBirthOptions()
-    printAndFlush("+ Done\n")
-    printAndFlush("~ Creating character...\n")
-    createCharacter(characterName)
-    printAndFlush("+ Done\n")
-elif profileState == ProfileState.CHARACTER_ALIVE:
-    printAndFlush("~ Resuming game\n")
-else:
-    printAndFlush("~ Profile state NOT handled!\n")
-
-printAndFlush("~ Setting up Subwindows...\n")
-setupSubwindows()
-printAndFlush("+ Done\n")
-
-#mapView = getMapView()
-#print(*mapView, sep="\n")
-
-
-#driver.quit()
-
-
-
-"""
-map = TileMap(mapViewWidth, mapViewHeight, mapView)
-map.print()
-
-userInput = input("Direction: ")
-
-while userInput!='q':
-
-    movePlayer(userInput)
+    sendInput(userInput)
 
     mapView = getMapView()
+    #print(*mapView, sep='\n')
 
-    map.checkAndHandleMapViewPositionChange(mapView)
-    map.writeTiles(mapView)
-    map.updatePlayerPosition()
+    tileMap.checkAndHandleMapViewPositionChange(mapView)
+    tileMap.writeTiles(mapView)
+    tileMap.updatePlayerPosition()
 
-    map.print()
+    tileMap.print()
 
-    userInput = input("Direction: ")
+    userInput = input("Input: ")
 
-"""
+
+
+
+driver.quit()
