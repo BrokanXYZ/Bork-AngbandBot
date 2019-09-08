@@ -1,5 +1,6 @@
 from Tile import Tile
 import math
+import sys
 
 class TileMap:
     def __init__(self, mapViewWidth, mapViewHeight, mapView):
@@ -16,45 +17,108 @@ class TileMap:
             if len(line)>1 and line[0]!='#':
                 explodedLine = line.split(',')
                 name = explodedLine[0]
-                asciiCode = explodedLine[1]
-                tileType = explodedLine[2]
+                asciiCode = int(explodedLine[1])
+                type = explodedLine[2].strip()
                 char = chr(int(asciiCode))
-                self.tileDefinitions[asciiCode] = Tile(name, tileType, asciiCode, char)
+                self.tileDefinitions[asciiCode] = Tile(name, type, asciiCode, char)
         tileDefFile.close()
 
         # Init map tiles
         mapMultiplier = 3
         self.mapWidth = mapViewWidth*mapMultiplier
         self.mapHeight = mapViewHeight*mapMultiplier
-        self.map = [[Tile('name','tileType',35,'#') for i in range(self.mapWidth)] for j in range(self.mapHeight)]
-
+        self.map = [[Tile("unknown grid", "INDESTRUCTABLE_OBSTACLE", 32, ' ') for i in range(self.mapWidth)] for j in range(self.mapHeight)]
         self.origin = (math.floor(self.mapWidth/2),math.floor(self.mapHeight/2))
         self.mapViewCenter = self.origin
 
         # Initial tile write
         self.writeTiles(mapView)
 
-        # Initialize player's position
-        self.updatePlayerPosition()
+        # Init explorableTiles
+        self.explorableTiles = []
+
+        # Init player's position
+        self.playerPosition = self.getPlayerPosition()
 
     def getTileMapCharAt(self, x, y):
         return self.map[y][x].char
 
-    def updatePlayerPosition(self):
+    def getPlayerPosition(self):
         # Get player's position
         startingPoint = (int(self.mapViewCenter[0]-(self.mapViewWidth/2)),int(self.mapViewCenter[1]-(self.mapViewHeight/2)))
-        i = startingPoint[0]
-        j = startingPoint[1]
+        x = startingPoint[0]
+        y = startingPoint[1]
+        playerPosition = (-1,-1)
         playerFound = False
 
-        while j < len(self.map) and not playerFound:
-            while i < len(self.map[j]) and not playerFound:
-                if self.map[j][i].char == '@':
+        while y < (startingPoint[1] + self.mapViewHeight) and not playerFound:
+            while x < (startingPoint[0] + self.mapViewWidth) and not playerFound:
+                if self.getTileMapCharAt(x, y) == '@':
                     playerFound = True
-                    self.playerPosition = (i,j)
-                i = i + 1
-            j = j + 1
-            i = startingPoint[0]
+                    playerPosition = (x,y)
+                x = x + 1
+            y = y + 1
+            x = startingPoint[0]
+
+        return playerPosition
+
+    def getClosestExplorableTile(self):
+
+        if len(self.explorableTiles) == 0:
+            raise Exception("There are no more explorable tiles... Bork doesn't know what to do!!")
+
+        playerPosition = self.getPlayerPosition()
+        closestExplorableTile = self.explorableTiles[0]
+        shortestDistance = self.distance(playerPosition, self.explorableTiles[0])
+        i = 1
+
+        while i < len(self.explorableTiles):
+            distance = self.distance(playerPosition, self.explorableTiles[i])
+            if distance < shortestDistance:
+                shortestDistance = distance
+                closestExplorableTile = self.explorableTiles[i]
+            i = i + 1
+
+        return closestExplorableTile
+
+    def distance(self, src, dst):
+        return math.sqrt(math.pow((dst[0] - src[0]),2) + math.pow((dst[1] - src[1]),2))
+
+    def updatePlayerPosition(self):
+        self.playerPosition = self.getPlayerPosition()
+
+    def clearAndUpdateExplorableTiles(self):
+        self.explorableTiles = []
+
+        for i, row in enumerate(self.map):
+            for j, tile in enumerate(row):
+                if tile.type == "PASSABLE_TERRAIN" or tile.type == "OBJECT" or tile.type == "MONSTER":
+                    isAdjToUnexploredTile = False
+
+                    try:
+                        if self.map[i+1][j].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i-1][j].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i][j+1].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i][j-1].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i+1][j+1].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i+1][j-1].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i-1][j+1].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                        elif self.map[i-1][j-1].asciiCode == 32:
+                            isAdjToUnexploredTile = True
+                    except IndexError:
+                        pass
+
+                    if isAdjToUnexploredTile:
+                        x = j
+                        y = i
+                        self.explorableTiles.append((x,y))
 
     def checkAndHandleMapViewPositionChange(self, mapView):
         # Find player's position in new mapView
@@ -96,9 +160,8 @@ class TileMap:
         elif mapViewHorizontalShift:
             self.mapViewCenter = (self.mapViewCenter[0] + (diffMapViewPositions[0]), self.mapViewCenter[1])
 
-        print("mapViewCenter = " + str(self.mapViewCenter[0]) + ', ' + str(self.mapViewCenter[1]))
-        print("diffMapViewPositions = " + str(diffMapViewPositions[0]) + ', ' + str(diffMapViewPositions[1]))
-
+        #print("mapViewCenter = " + str(self.mapViewCenter[0]) + ', ' + str(self.mapViewCenter[1]))
+        #print("diffMapViewPositions = " + str(diffMapViewPositions[0]) + ', ' + str(diffMapViewPositions[1]))
 
     def writeTiles(self, mapView):
         # Top left hand corner of mapView from the perspective of self.map (starting point!)
@@ -108,7 +171,7 @@ class TileMap:
 
         for line in mapView:
             for char in line:
-                self.map[mapRowPointer][mapColPointer] = self.tileDefinitions[str(ord(char))]
+                self.map[mapRowPointer][mapColPointer] = self.tileDefinitions[ord(char)]
                 mapColPointer = mapColPointer + 1
             mapColPointer = startingPoint[0]
             mapRowPointer = mapRowPointer + 1

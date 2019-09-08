@@ -3,7 +3,8 @@ import time
 import sys
 from enum import Enum
 from TileMap import TileMap
-from Tile import Tile
+from Terminal import Terminal
+from Player import Player
 from array import *
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -35,6 +36,7 @@ mapViewWidth = terminalWidth - (mapViewLeftOffset + mapViewRightOffset)
 mapViewHeight = terminalHeight - (mapViewTopOffset + mapViewBottomOffset)
 
 tileMap = None
+player = None
 driver = None
 terminal = None
 
@@ -104,174 +106,73 @@ def playGame():
 
 def setIronmanBirthOptions():
     # Birth options
-    terminal.send_keys('=')
-    time.sleep(1)
-    terminal.send_keys('c')
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys('d')
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys(Keys.ESCAPE)
-    time.sleep(1)
+    terminal.sendInput('=')
+    terminal.sendInput('c')
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput('d')
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput(Keys.ESCAPE)
 
 def createCharacter(characterName):
     # Race select
-    terminal.send_keys('h')
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
+    terminal.sendInput('h')
+    terminal.sendInput(Keys.ENTER)
 
     # Class select
-    terminal.send_keys('a')
-    time.sleep(1)
+    terminal.sendInput('a')
 
     # Stat generation select
-    terminal.send_keys('a')
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
+    terminal.sendInput('a')
+    terminal.sendInput(Keys.ENTER)
 
     # Character name
-    terminal.send_keys(Keys.DELETE)
-    time.sleep(1)
-    terminal.send_keys(characterName)
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys('y')
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
+    terminal.sendInput(Keys.DELETE)
+    terminal.sendInput(characterName)
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput('y')
+    terminal.sendInput(Keys.ENTER)
 
 def setupSubwindows():
-    terminal.send_keys('=')
-    time.sleep(1)
-    terminal.send_keys('w')
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_RIGHT)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_DOWN)
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_RIGHT)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ARROW_UP)
-    time.sleep(1)
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(1)
-    terminal.send_keys(Keys.ESCAPE)
-    time.sleep(1)
-    terminal.send_keys(Keys.ESCAPE)
-    time.sleep(1)
-
-def getMapView():
-    mapView = []
-    allTerminalLines = getAllTerminalLines()
-    linePointer = mapViewTopOffset
-
-    while linePointer <  len(allTerminalLines) - mapViewBottomOffset:
-
-        line = list(allTerminalLines[linePointer])
-
-        # Convert ASCII code 183 (A with grave accent) to 46 (Period)
-        for i, char in enumerate(line):
-            if ord(char)==183:
-                line[i]='.'
-
-        while len(line) < terminalWidth:
-            line.append(' ')
-
-        line = "".join(line)
-        mapViewLine = line[mapViewLeftOffset:len(line)-mapViewRightOffset]
-        mapView.append(mapViewLine)
-
-        linePointer+=1
-
-    return mapView
-
-def sendInput(input):
-    terminal.send_keys(userInput)
-    time.sleep(actionDelay)
+    terminal.sendInput('=')
+    terminal.sendInput('w')
+    terminal.sendInput(Keys.ARROW_RIGHT)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ARROW_DOWN)
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput(Keys.ARROW_RIGHT)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ARROW_UP)
+    terminal.sendInput(Keys.ENTER)
+    terminal.sendInput(Keys.ESCAPE)
+    terminal.sendInput(Keys.ESCAPE)
 
 def printAndFlush(string):
     print(string)
     sys.stdout.flush()
 
-def getAllTerminalLines():
-    allTerminalText = driver.execute_script("return spyglass[\"default\"].grabText(0,0,0," + str(terminalHeight-1) + ")")
-    allTerminalLines = allTerminalText.splitlines()
-    return allTerminalLines
-
-def getProfileState():
-    state = ProfileState.CHARACTER_ALIVE
-    newCharAfterDeathStr = "New character based on previous one"
-
-    allTerminalLines = getAllTerminalLines()
-    firstTerminalLine = allTerminalLines[0]
-
-    if(firstTerminalLine[0:len(newCharAfterDeathStr)]==newCharAfterDeathStr):
-        state = ProfileState.NEW_CHARACTER_AFTER_DEATH
-
-    return state
-
-def initTileMap():
-    global tileMap
-
-    mapView = getMapView()
-    tileMap = TileMap(mapViewWidth, mapViewHeight, mapView)
-
-    print("mapViewHeight = " + str(mapViewHeight))
-    print("mapViewWidth = " + str(mapViewWidth))
-
-def setup():
-    printAndFlush("\n---------------------- Begin Setup ----------------------\n")
-
-    global driver
+def setupGame():
     global terminal
+    global driver
+
+    printAndFlush("\n---------------------- Begin Setup ----------------------\n")
 
     driver = webdriver.Chrome()
 
@@ -291,29 +192,28 @@ def setup():
     printAndFlush("~ Starting game\n")
     playGame()
 
-    terminal = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
+    terminalElem = driver.find_element_by_xpath("//div[@id='terminal-container']//div[@class='terminal']")
+    terminal = Terminal(terminalElem, driver, terminalWidth, terminalHeight, mapViewTopOffset, mapViewBottomOffset, mapViewLeftOffset, mapViewRightOffset, actionDelay)
 
     # "Press any key"
-    terminal.send_keys(Keys.ENTER)
-    time.sleep(actionDelay)
+    terminal.sendInput(Keys.ENTER)
 
-    profileState = getProfileState()
+    profileState = terminal.getProfileState()
     printAndFlush("~ Profile state: " + profileState.name + '\n')
 
-    if profileState == ProfileState.NEW_CHARACTER_AFTER_DEATH:
-        terminal.send_keys('N')
-        time.sleep(1)
+    if profileState.value == ProfileState.NEW_CHARACTER_AFTER_DEATH.value:
+        terminal.sendInput('N')
         printAndFlush("~ Creating character...\n")
         createCharacter(characterName)
         printAndFlush("+ Done\n")
-    elif profileState == ProfileState.NEW_CHARACTER:
+    elif profileState.value == ProfileState.NEW_CHARACTER.value:
         printAndFlush("~ Setting ironman birth settings...\n")
         setIronmanBirthOptions()
         printAndFlush("+ Done\n")
         printAndFlush("~ Creating character...\n")
         createCharacter(characterName)
         printAndFlush("+ Done\n")
-    elif profileState == ProfileState.CHARACTER_ALIVE:
+    elif profileState.value == ProfileState.CHARACTER_ALIVE.value:
         printAndFlush("~ Resuming game\n")
     else:
         printAndFlush("~ Profile state NOT handled!\n")
@@ -324,32 +224,26 @@ def setup():
 
     printAndFlush("\n-------------------- Setup Complete! --------------------\n")
 
-
 ################################# Main #################################
 
-setup()
+setupGame()
 
-initTileMap()
-tileMap.print()
+tileMap = TileMap(mapViewWidth, mapViewHeight, terminal.getMapView())
+#tileMap.print()
 
+player = Player(tileMap, terminal)
+
+while True:
+    tileMap.clearAndUpdateExplorableTiles()
+    player.moveTo(tileMap.getClosestExplorableTile())
+
+"""
 userInput = input("Input: ")
 
 while userInput!='Q':
-
-    sendInput(userInput)
-
-    mapView = getMapView()
-    #print(*mapView, sep='\n')
-
-    tileMap.checkAndHandleMapViewPositionChange(mapView)
-    tileMap.writeTiles(mapView)
-    tileMap.updatePlayerPosition()
-
-    tileMap.print()
-
+    player.move(userInput)
+    #tileMap.print()
     userInput = input("Input: ")
-
-
-
+"""
 
 driver.quit()
