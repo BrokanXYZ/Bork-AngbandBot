@@ -237,13 +237,12 @@ while True:
     tileMap.clearAndUpdateExplorableTiles()
     player.moveTo(tileMap.getClosestExplorableTile())
 
-"""
-userInput = input("Input: ")
 
-while userInput!='Q':
-    player.move(userInput)
+#userInput = input("Input: ")
+
+#while userInput!='Q':
+    #player.move(userInput)
     #tileMap.print()
-    userInput = input("Input: ")
-"""
+    #userInput = input("Input: ")
 
 driver.quit()

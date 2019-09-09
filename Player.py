@@ -27,4 +27,30 @@ class Player:
             self.tileMap.updatePlayerPosition()
 
     def moveTo(self, dst):
-        print("Moving to " + str(dst))
+        print("Moving from " + str(self.tileMap.getPlayerPosition()) + " to " + str(dst))
+        path = self.tileMap.getPathTo(dst)
+        print(str(path))
+
+        while len(path) > 0:
+            coords = path.pop()
+            playerPosition = self.tileMap.getPlayerPosition()
+            diff = ((coords[0] - playerPosition[0]), (coords[1] - playerPosition[1]))
+
+            if diff == (1,0):
+                self.move('6')
+            elif diff == (-1,0):
+                self.move('4')
+            elif diff == (0,1):
+                self.move('2')
+            elif diff == (0,-1):
+                self.move('8')
+            elif diff == (1,1):
+                self.move('3')
+            elif diff == (-1,-1):
+                self.move('7')
+            elif diff == (1,-1):
+                self.move('9')
+            elif diff == (-1,1):
+                self.move('1')
+            else:
+                print("unhandled direction!!")

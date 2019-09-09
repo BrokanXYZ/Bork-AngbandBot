@@ -43,6 +43,9 @@ class TileMap:
     def getTileMapCharAt(self, x, y):
         return self.map[y][x].char
 
+    def getTile(self, x, y):
+        return self.map[y][x]
+
     def getPlayerPosition(self):
         # Get player's position
         startingPoint = (int(self.mapViewCenter[0]-(self.mapViewWidth/2)),int(self.mapViewCenter[1]-(self.mapViewHeight/2)))
@@ -81,8 +84,73 @@ class TileMap:
 
         return closestExplorableTile
 
+    # A* Pathfinding Algorithm
+    def getPathTo(self, dst):
+        # Key: coords
+        # Value: (cost, parentCoords)
+        openNodes = dict()
+        closedNodes = dict()
+
+        path = []
+        pathFound = False
+        openNodes[self.playerPosition] = (0, None)
+
+        # Determine path
+        while not pathFound:
+            currentNodeCoords = None
+            currentNodeCost = sys.maxsize
+
+            # Get lowest cost open node
+            for key, value in openNodes.items():
+                coords = key
+                cost = value[0]
+                if cost < currentNodeCost:
+                    currentNodeCost = cost
+                    currentNodeCoords = coords
+
+            # Add node to closedNodes and remove from openNodes
+            closedNodes[currentNodeCoords] = openNodes[currentNodeCoords]
+            del openNodes[currentNodeCoords]
+
+            if currentNodeCoords == dst:
+                pathFound = True
+            else:
+                x = currentNodeCoords[0]
+                y = currentNodeCoords[1]
+
+                # Handle neighbors
+                neighbors = [(x+1,y),(x+1,y+1),(x+1,y-1),(x-1,y),(x-1,y-1),(x-1,y+1),(x,y+1),(x,y-1)]
+
+                for neighbor in neighbors:
+                    neighborTile = self.getTile(neighbor[0], neighbor[1])
+
+                    if neighborTile.type == "INDESTRUCTABLE_OBSTACLE" or neighbor in closedNodes:
+                        pass
+                    elif neighbor not in openNodes or (neighbor in openNodes and (currentNodeCost+1 < openNodes[neighbor][0])):
+                        openNodes[neighbor] = (currentNodeCost+1, currentNodeCoords)
+
+        # Form path
+        currentNodeCoords = dst
+
+        while closedNodes[currentNodeCoords][1] != None:
+            path.append(currentNodeCoords)
+            currentNodeCoords = closedNodes[currentNodeCoords][1]
+
+        return path
+
+    def getNodeCost(self, node, dst):
+        return (self.distance(self.playerPosition, node) + self.distance(dst, node))
+
+
     def distance(self, src, dst):
-        return math.sqrt(math.pow((dst[0] - src[0]),2) + math.pow((dst[1] - src[1]),2))
+        # ** Diagonal moves are the same distance as horizontal or vertical moves **
+        xDiff = math.fabs(dst[0]-src[0])
+        yDiff = math.fabs(dst[1]-src[1])
+
+        if xDiff > yDiff:
+            return xDiff
+        else:
+            return yDiff
 
     def updatePlayerPosition(self):
         self.playerPosition = self.getPlayerPosition()
